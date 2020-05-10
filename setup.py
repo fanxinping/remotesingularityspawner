@@ -30,8 +30,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the current package version.
 version_ns = {}
-with open(pjoin(here, 'version.py')) as f:
-    exec(f.read(), {}, version_ns)
 
 install_requires = []
 with open('requirements.txt') as f:
@@ -53,7 +51,7 @@ class bdist_egg_disabled(bdist_egg):
 setup_args = dict(
     name                = 'remotesingularityspawner',
     packages            = ['remotesingularityspawner'],
-    version             = version_ns['__version__'],
+    version             = "0.0.1",
     description         = """RemoteSingularitySpawner: A custom spawner for Jupyterhub in singularity container.""",
     long_description    = "",
     author              = "xinping fan",
