@@ -51,7 +51,7 @@ class bdist_egg_disabled(bdist_egg):
 setup_args = dict(
     name                = 'remotesingularityspawner',
     packages            = ['remotesingularityspawner'],
-    version             = "0.0.1",
+    version             = "0.0.2",
     description         = """RemoteSingularitySpawner: A custom spawner for Jupyterhub in singularity container.""",
     long_description    = "",
     author              = "xinping fan",
