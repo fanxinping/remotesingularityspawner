@@ -24,7 +24,7 @@ def execute(channel, command):
     return pid, stdin, stdout, stderr
 
 class SshConnection(object):
-    """" 
+    """"
     The class is an adapter of a **paramiko.SSHClient used to avoid leak.
     """
     def __init__(self):
@@ -33,7 +33,7 @@ class SshConnection(object):
     def __del__(self):
         if self._client:
             self._client.close()
-    
+
     def connect(self, hostname, username, pkey):
         self._client.connect(hostname, username=username, pkey=pkey)
 
@@ -63,7 +63,11 @@ class RemoteSingularitySpawner(Spawner):
              '"hostname1:,:ip_address2,hostname3:ip_address3"')
     home_path = Unicode(
         default_value='/home', config=True,
-        help="The path where store users' home directory")
+        help="The place where the users' home directory locate")
+    default_bind_path = Unicode(
+        default_value='', config=True,
+        help='The extra path will be bind when spawn notebook servers'
+             'Format: "/path1;/path2"')
     channel = Instance(SshConnection)
     pid = Integer(0)
 
@@ -135,11 +139,17 @@ class RemoteSingularitySpawner(Spawner):
         self.log.debug(f"home path: {os.path.expanduser('~')}")
         env = self.get_env()
         singularity_env = []
+
         for k, v in env.items():
             singularity_env.append(f"SINGULARITYENV_{k}={v}")
+        dir_list = []
         if options['dirs'] != '':
             # bind dirs for user
-            dir_list = [x.strip() for x in options['dirs'].split(';')]
+            dir_list.extend([x.strip() for x in options['dirs'].split(';')])
+        if self.default_bind_path != '':
+            dir_list.extend(
+                [x.strip() for x in self.default_bind_path.split(';')])
+        if dir_list != []:
             singularity_env.append(
                 f'SINGULARITY_BIND="{",".join(dir_list)}"')
         if jupyterhub.version_info < (0, 7):
@@ -169,9 +179,11 @@ class RemoteSingularitySpawner(Spawner):
         self.log.debug(f"use the rsa file for {self.server_user}: {rsa_file}")
         k = paramiko.RSAKey.from_private_key_file(rsa_file)
         self.log.debug(f"home: {self.home_path}")
-        self.log.debug(f"connecting ssh tunel server_url={self.server_url} username={self.server_user}")
+        self.log.debug(f"connecting ssh tunel server_url={self.server_url} "
+                       f"username={self.server_user}")
         try:
-            self.channel.connect(self.server_url, username=self.server_user, pkey=k)
+            self.channel.connect(
+                self.server_url, username=self.server_user, pkey=k)
         except Exception as e:
             self.log.debug(repr(e))
             sys.exit(1)
@@ -199,8 +211,12 @@ class RemoteSingularitySpawner(Spawner):
         We use kill -0 $PID to check whether the jupyterhub-singleuser is
         running on remote host. This method is only available on linux.
         """
-        stdin, stdout, stderr = self.channel.exec_command(
-            f"kill -0 {self.pid} &> /dev/null; echo status=$?")
+        try:
+            stdin, stdout, stderr = self.channel.exec_command(
+                f"kill -0 {self.pid} &> /dev/null; echo status=$?")
+        except Exception as e:
+            self.log.debug(repr(e))
+            return -1
         status = int(stdout.readline().replace("status=", ""))
         if status == 0:
             return None
@@ -217,7 +233,7 @@ class RemoteSingularitySpawner(Spawner):
         """
         if self.pid == 0:
             # the jupyterhub-singleuser never be launched
-            self.clear_state
+            self.clear_state()
         self.log.debug(f"stop the spawner on host {self.server_url}")
         for _ in range(3):
             stdin, stdout, stderr = self.channel.exec_command(
@@ -229,13 +245,15 @@ class RemoteSingularitySpawner(Spawner):
             if status == 0:
                 break
         # have try three times, so send singal 9
-        stdin, stdout, stderr = self.channel.exec_command(f"kill -9 {self.pid}")
-        self.clear_state
+        stdin, stdout, stderr = self.channel.exec_command(
+            f"kill -9 {self.pid}")
+        self.clear_state()
 
     @default('options_form')
     def _default_options_form(self):
         default_node = self.node_list[0]
-        node_list_str = f'<option slected="selected" value="{default_node}">{default_node}</option>'
+        node_list_str = f'<option slected="selected" value="{default_node}">' \
+                        f'{default_node}</option>'
         for node in self.node_list[1:]:
             node_list_str += f'<option value="{node}">{node}</option>'
         html = f"""
