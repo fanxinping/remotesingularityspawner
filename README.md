@@ -1,10 +1,8 @@
 # RemoteSingularitySpawner
 **RemoteSingularitySpawner** enables [JupyterHub](https://github.com/jupyterhub/jupyterhub) to spawn single user notebook serves in Singularity containers on remote host specified by user.
 ## Technical overview
----
 **RemoteSingularitySpawner** uses SSH (provided by [paramiko](http://www.paramiko.org/)) to login remote host and spawn single user notebook servers. Meanwhile, it uses `kill` command to check the status of notebook servers and control this process. Of course, the users must have SSH key for automating logins to let RemoteSingularitySpawner login remote host without password. Currently, this package supports RSA key only, but you can modifty the source code to support other keys.
 ## How to use
----
 ### 1. Install Singularity
 [Singularity](https://sylabs.io/docs/) must be installed on all hosts you want to run jupyterhub and notebook servers. Please refer the official documents: https://sylabs.io/docs/
 ### 2. Build a Singularity Container
@@ -52,7 +50,7 @@ This configuration is optional. `'/lab'` means jupyterlab will be used. You can 
 ```
 c.RemoteSingularitySpawner.default_bind_path = '/path1;/path2'
 ```
-This configuration is optional. When spawn notebook server on remote hosts, `/path1` and `/path2` will be binded into container. Note that Singularity have its own system default bind points(https://sylabs.io/guides/3.5/user-guide/bind_paths_and_mounts.html). By the way, when spawn a notebook server, users will be redirected to a page that users can bind their own path.
+This configuration is optional. When spawn notebook server on remote hosts, `/path1` and `/path2` will be binded into container. Note that Singularity have its own system default bind points(https://sylabs.io/guides/3.5/user-guide/bind_paths_and_mounts.html). By the way, when spawn a notebook server, users will be redirected to a page where users can bind their own path.
 ### 4. Run the JupyterHub server
 ```bash
 sudo SINGULARITY_BIND="<path_to_home>" singularity run jupyterhub.sif
@@ -71,7 +69,6 @@ And use this command to stop instance:
 singularity instance stop jupyterhub_web
 ```
 ## FAQ
----
 ### 1. Can I use this package if I use LDAP in my cluster?
 Of course you can. Actually, I use LDAP in my cluster too.
 ### 2. Why use Singularity instead of Docker?
