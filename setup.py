@@ -31,14 +31,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the current package version.
 version_ns = {}
 
-install_requires = []
-with open('requirements.txt') as f:
-    for line in f.readlines():
-        req = line.strip()
-        if not req or req.startswith('#'):
-            continue
-        install_requires.append(req)
-
 from setuptools.command.bdist_egg import bdist_egg
 class bdist_egg_disabled(bdist_egg):
     """Disabled version of bdist_egg
@@ -51,7 +43,7 @@ class bdist_egg_disabled(bdist_egg):
 setup_args = dict(
     name                = 'remotesingularityspawner',
     packages            = ['remotesingularityspawner'],
-    version             = "0.0.2",
+    version             = "0.0.3",
     description         = """RemoteSingularitySpawner: A custom spawner for Jupyterhub in singularity container.""",
     long_description    = "",
     author              = "xinping fan",
@@ -69,7 +61,8 @@ setup_args = dict(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
-    install_requires = install_requires,
+    install_requires = [
+        'paramiko'],
     entry_points={
         'jupyterhub.spawners': [
             'remote-singularity-spawner = remotesingularityspawner:RemoteSingularitySpawner'
