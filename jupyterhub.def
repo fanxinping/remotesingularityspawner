@@ -1,0 +1,65 @@
+BootStrap: library
+# Use ubuntu 18.04 as base
+From: ubuntu:18.04
+
+
+%post
+# cd /root as working directory
+    cd /root
+
+# Install pcakges
+    apt-get update
+    apt-get install -y software-properties-common
+    apt-add-repository -y universe
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" > /etc/apt/sources.list.d/R.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+    apt-get update
+
+# Set timezone for tzdata package
+    export DEBIAN_FORNTEND=noninteractive
+    apt-get install -y tzdata
+    ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
+
+    apt-get install -y vim iputils-ping openssh-server libcurl4-openssl-dev
+    apt-get install -y python2.7 python3 python-pip python3-pip r-base npm nodejs
+    npm install -g configurable-http-proxy
+
+# Install jupyterhub, kernels and jupyterlab
+    python3 -m pip install jupyterhub-ldapauthenticator notebook ipykernel
+    python3 -m pip install pycurl
+    python3 -m pip install jupyterlab
+    python3 -m ipykernel install
+    python2 -m pip install ipykernel
+    python2 -m ipykernel install
+    apt-get -y install libzmq3-dev libcurl4-openssl-dev libssl-dev jupyter-core jupyter-client
+    Rscript -e "install.packages(c('repr', 'IRdisplay', 'IRkernel'), type='source'); IRkernel::installspec(user=FALSE)"
+    apt-get -y autoremove
+
+# add the remote-singularity-spawner for jupyterhub
+    python3 -m pip install remotesingularityspawner
+
+# configuration
+    jupyterhub --generate-config
+    jupyter notebook --generate-config
+# enable user switch between jupyterlab and jupyter notebook
+    jupyter serverextension enable jupyterlab
+
+%runscript
+    echo "Container is running..."
+    echo "Arguments received: $*"
+    echo "Run jupyterhub --debug $*"
+    jupyterhub --debug $*
+
+%startscript
+    echo "Container is running..."
+    echo "Arguments received: $*"
+    echo "Run jupyterhub --debug $*"
+    jupyterhub --debug $*
+
+%labels
+    Author fanxp
+    Version v0.0.1
+
+%help
+    This is a demo container used to run jupyterhub
