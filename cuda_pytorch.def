@@ -1,5 +1,5 @@
 BootStrap: localimage
-From: /y/program/jupyterhub/cuda_u18.04.sif
+From: ./cuda_u18.04.sif
 
 
 %post
