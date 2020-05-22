@@ -1,0 +1,28 @@
+BootStrap: library
+# Use ubuntu 18.04 as base
+From: ubuntu:18.04
+
+%post
+# cd /root as working directory
+    cd /root
+
+# add necessary repository and packages
+    apt-get update
+    apt-get install -y --no-install-recommends gnupg curl ca-certificates
+
+# install cuda10.1 and cuDNN
+    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | apt-key add -
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+    apt-get update
+    apt-get install -y --no-install-recommends cuda-compat-10-1 cuda-libraries-dev-10-1 cuda-nvml-dev-10-1 cuda-minimal-build-10-1 cuda-command-line-tools-10-1 libnccl2=2.4.2-1+cuda10.1 libnccl-dev=2.4.2-1+cuda10.1
+    apt-get install -y --no-install-recommends libcudnn7=7.6.4.38-1+cuda10.1 libcudnn7-dev=7.6.4.38-1+cuda10.1
+
+# clean
+    apt-get purge --autoremove -y curl
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    export PATH=/usr/local/cuda-10.1/bin:${PATH}
+    export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64:${LD_LIBRARY_PATH}

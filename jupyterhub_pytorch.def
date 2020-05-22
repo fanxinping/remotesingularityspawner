@@ -1,6 +1,5 @@
-BootStrap: library
-# Use ubuntu 18.04 as base
-From: ubuntu:18.04
+BootStrap: localimage
+From: ./cuda_pytorch.sif
 
 
 %post
@@ -17,7 +16,7 @@ From: ubuntu:18.04
 
 # Set timezone for tzdata package
     export DEBIAN_FRONTEND=noninteractive
-    apt-get install -y tzdata
+    apt-get install -y -q tzdata
     ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     dpkg-reconfigure --frontend noninteractive tzdata
 
@@ -32,9 +31,7 @@ From: ubuntu:18.04
     python3 -m ipykernel install
     python2 -m pip install ipykernel
     python2 -m ipykernel install
-    apt-get -y install libzmq3-dev libcurl4-openssl-dev libssl-dev jupyter-core jupyter-client
     Rscript -e "install.packages(c('repr', 'IRdisplay', 'IRkernel'), type='source'); IRkernel::installspec(user=FALSE)"
-    apt-get -y autoremove
 
 # add the remote-singularity-spawner for jupyterhub
     python3 -m pip install remotesingularityspawner
@@ -44,6 +41,13 @@ From: ubuntu:18.04
     jupyter notebook --generate-config
 # enable user switch between jupyterlab and jupyter notebook
     jupyter serverextension enable jupyterlab
+
+# clean
+    cd /root
+    apt-get -y autoremove
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    rm -rf .cache/pip
 
 %runscript
     echo "Container is running..."

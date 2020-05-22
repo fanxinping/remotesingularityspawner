@@ -1,0 +1,43 @@
+BootStrap: localimage
+From: /y/program/jupyterhub/cuda_u18.04.sif
+
+
+%post
+# cd /root as working directory
+    cd /root
+# add cuda env
+    export PATH=/usr/local/cuda-10.1/bin:${PATH}
+    export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64:${LD_LIBRARY_PATH}
+    export CPATH=/usr/local/cuda-10.1/include:${CPATH}
+    export CUDA_HOME=/usr/local/cuda-10.1
+# Install pcakges
+    apt-get update
+    apt-get install -y software-properties-common
+    apt-add-repository -y universe
+    apt-get install -y python3 python3-pip git
+
+# pytorch
+    python3 -m pip install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi
+    git clone --recursive https://github.com/pytorch/pytorch
+    cd pytorch
+    # checkout to v1.5.0
+    git checkout tags/v1.5.0
+    git submodule sync
+    git submodule update --init --recursive
+    python3 setup.py install
+    cd /root
+    git clone https://github.com/pytorch/vision.git
+    cd vision
+    python3 setup.py install
+
+# clean
+    cd /root
+    apt-get -y autoremove
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    rm -rf pytorch vision
+    rm -rf .cache/pip
+
+%labels
+    Author fanxp
+    Version v0.0.1
