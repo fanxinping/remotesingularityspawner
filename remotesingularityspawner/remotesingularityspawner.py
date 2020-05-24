@@ -61,6 +61,11 @@ class RemoteSingularitySpawner(Spawner):
              'Format: "hostname1:ip_address1,hostname2:ip_address2", '
              '"hostname1:,hostname2:", ":ip_address1,:ip_address2" or '
              '"hostname1:,:ip_address2,hostname3:ip_address3"')
+    gpu_enabled_nodelist = Unicode(
+        default_value='', config=True,
+        help='The nodes enable Singularity Container using GPU. '
+             'Format: "hostname1,hostname2", "ip_address1,ip_address2", or '
+             '"hostname1,ip_address2"')
     home_path = Unicode(
         default_value='/home', config=True,
         help="The place where the users' home directory locate")
@@ -75,6 +80,7 @@ class RemoteSingularitySpawner(Spawner):
         super(RemoteSingularitySpawner, self).__init__(**kwargs)
         self.node_dict = {}
         self.node_list = []
+        self.gpu_enabled_list = set()
         for node_record in self.nodelist.split(','):
             hostname, ip = node_record.strip().split(':')
             if hostname == '' and ip == '':
@@ -107,6 +113,9 @@ class RemoteSingularitySpawner(Spawner):
                     continue
                 self.node_dict.update({hostname: ip})
                 self.node_list.append(hostname)
+        if self.gpu_enabled_nodelist != '':
+            for node in self.gpu_enabled_nodelist.split(','):
+                self.gpu_enabled_list.add(node.strip())
 
     def load_state(self, state):
         """load pid from state"""
@@ -156,8 +165,10 @@ class RemoteSingularitySpawner(Spawner):
             port = random_port()
         else:
             port = self.user.server.port
-
-        cmd = [*singularity_env, self.singularity_exe_path, "exec",
+        gpu_args = ""
+        if options['host'] in self.gpu_enabled_list:
+            gpu_args = "--nv"
+        cmd = [*singularity_env, self.singularity_exe_path, "exec", gpu_args,
                self.singularity_container_path]
 
         cmd.extend(self.cmd)

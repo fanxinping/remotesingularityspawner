@@ -45,6 +45,12 @@ From: ubuntu:18.04
 # enable user switch between jupyterlab and jupyter notebook
     jupyter serverextension enable jupyterlab
 
+%environment
+# let python ignore user site-packages, and won’t add the user site-packages directory to sys.path.
+    export PYTHONNOUSERSITE=1
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
 %runscript
     echo "Container is running..."
     echo "Arguments received: $*"
